@@ -13,7 +13,8 @@ server.get('/', (req,res) => {
 
 server.get('/api/users', (req,res) => {
   db.find()
-    .then(users => res.status(200).json(users));
+    .then(users => res.status(200).json(users))
+    .catch(err => res.status(500).json({ error: "The users information could not be retrieved." }));
 });
 
 server.post('/api/users', (req,res) => {
@@ -36,7 +37,7 @@ server.get('/api/users/:id', (req,res) => {
         res.status(404).json({message: "The user with the specified ID does not exist."});
       }
     })
-    .catch(err => res.send(err));
+    .catch(err => res.status(501).json({ error: "The user information could not be retrieved." }));
 });
 
 server.put('/api/users/:id', (req,res) => {
@@ -44,7 +45,17 @@ server.put('/api/users/:id', (req,res) => {
 });
 
 server.delete('/api/users/:id', (req,res) => {
-  res.send("hi");
+  const id = req.params.id;
+  db.findById(id)
+    .then(user => {
+      if(!user) {
+        res.status(404).json({message: "The user with the specified ID does not exist."});
+      } else {
+        db.remove(id)
+          .then(data => res.status(200).json({message:"User successfully deleted!"}))
+          .catch(err => res.status(500).json({error: "The user could not be removed"}));
+      }
+    })
 });
 
 
