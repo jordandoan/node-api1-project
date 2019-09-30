@@ -5,6 +5,8 @@ const server = express();
 
 const port = 5000;
 
+server.use(express.json());
+
 server.get('/', (req,res) => {
   res.send("Hey! You're on the / route.");
 })
@@ -15,8 +17,14 @@ server.get('/api/users', (req,res) => {
 });
 
 server.post('/api/users', (req,res) => {
-  console.log(req.body);
-  res.send("hi");
+  const user = req.body;
+  if (!user.name || !user.bio) {
+    res.status(400).json({errorMessage: "Please provide name and bio for the user."});
+  } else {
+    db.insert(user)
+      .then(user => res.status(201).json(user))
+      .catch(err => res.status(500).json({ error: "There was an error while saving the user to the database"}));
+  }
 });
 
 server.get('/api/users/:id', (req,res) => {
@@ -27,7 +35,8 @@ server.get('/api/users/:id', (req,res) => {
       } else {
         res.status(404).json({message: "The user with the specified ID does not exist."});
       }
-    });
+    })
+    .catch(err => res.send(err));
 });
 
 server.put('/api/users/:id', (req,res) => {
